@@ -129,7 +129,7 @@ public class BoardController : MonoBehaviour
     // Create
     private void Fill()
     {
-        m_board.Fill();
+        m_board.m_spawnSystem.Fill();
         FindMatchesAndCollapse();
     }
     // Read
@@ -178,7 +178,7 @@ public class BoardController : MonoBehaviour
 
     private void FindMatchesAndCollapse()
     {
-        List<Cell> matches = m_board.FindFirstMatch();
+        List<Cell> matches = m_board.m_matchSystem.FindFirstMatch();
 
         if (matches.Count > 0)
         {
@@ -186,7 +186,7 @@ public class BoardController : MonoBehaviour
         }
         else
         {
-            m_potentialMatch = m_board.GetPotentialMatches();
+            m_potentialMatch = m_board.m_matchSystem.GetPotentialMatches();
             if (m_potentialMatch.Count > 0)
             {
                 IsBusy = false;
@@ -205,13 +205,13 @@ public class BoardController : MonoBehaviour
 
     private List<Cell> GetMatches(Cell cell)
     {
-        List<Cell> listHor = m_board.GetHorizontalMatches(cell);
+        List<Cell> listHor = m_board.m_matchSystem.GetHorizontalMatches(cell);
         if (listHor.Count < m_gameSettings.MatchesMin)
         {
             listHor.Clear();
         }
 
-        List<Cell> listVert = m_board.GetVerticalMatches(cell);
+        List<Cell> listVert = m_board.m_matchSystem.GetVerticalMatches(cell);
         if (listVert.Count < m_gameSettings.MatchesMin)
         {
             listVert.Clear();
@@ -233,7 +233,7 @@ public class BoardController : MonoBehaviour
 
         yield return new WaitForSeconds(0.2f);
 
-        m_board.FillGapsWithNewItems();
+        m_board.m_spawnSystem.FillGapsWithNewItems();
 
         yield return new WaitForSeconds(0.2f);
 
@@ -246,7 +246,7 @@ public class BoardController : MonoBehaviour
 
         yield return new WaitForSeconds(0.2f);
 
-        m_board.Fill();
+        m_board.m_spawnSystem.Fill();
 
         yield return new WaitForSeconds(0.2f);
 

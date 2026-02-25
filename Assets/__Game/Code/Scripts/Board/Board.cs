@@ -25,12 +25,17 @@ public class Board
 
     private int m_matchMin;
 
+    [Header("Dependencies")]
     private ItemSkinDatabase m_skinDatabase;
 
     private PrefabDatabase m_prefabDatabase;
 
     private ItemPool m_itemPool;
 
+
+    public MatchSystem m_matchSystem;
+
+    public SpawnSystem m_spawnSystem;
 
     public Board(Transform transform, GameSettings gameSettings, ItemSkinDatabase itemSkinDatabase, PrefabDatabase prefabDatabase, ItemPool itemPool)
     {
@@ -47,6 +52,20 @@ public class Board
         m_prefabDatabase = prefabDatabase;
         m_itemPool = itemPool;
         CreateBoard();
+
+        m_matchSystem = new MatchSystem(
+            m_cells, 
+            boardSizeX, 
+            boardSizeY, 
+            m_matchMin);
+        m_spawnSystem = new SpawnSystem(
+            m_cells,
+            boardSizeX,
+            boardSizeY,
+            m_prefabDatabase,
+            m_skinDatabase,
+            m_itemPool
+        );
     }
 
 
@@ -84,257 +103,10 @@ public class Board
 
     }
 
-    internal void Fill()
-    {
-        for (int x = 0; x < boardSizeX; x++)
-        {
-            for (int y = 0; y < boardSizeY; y++)
-            {
-                Cell cell = m_cells[x, y];
-                GameObject prefab = m_prefabDatabase.GetPrefab(0);
-
-                NormalItem item = new NormalItem();
-                item.Initialize(prefab, m_itemPool);
-
-                item.SetSkinDatabase(m_skinDatabase);
-
-                List<NormalItem.eNormalType> types = new List<NormalItem.eNormalType>();
-                if (cell.NeighbourBottom != null)
-                {
-                    NormalItem nitem = cell.NeighbourBottom.Item as NormalItem;
-                    if (nitem != null)
-                    {
-                        types.Add(nitem.ItemType);
-                    }
-                }
-
-                if (cell.NeighbourLeft != null)
-                {
-                    NormalItem nitem = cell.NeighbourLeft.Item as NormalItem;
-                    if (nitem != null)
-                    {
-                        types.Add(nitem.ItemType);
-                    }
-                }
-
-                item.SetType(Utils.GetRandomNormalTypeExcept(types.ToArray()));
-                item.SetView();
-                item.SetViewRoot(cell.transform);
-
-                cell.Assign(item);
-                cell.ApplyItemPosition(false);
-            }
-        }
-    }
-
-    internal void FillGapsWithNewItems()
-    {
-        // get existing normal items count
-        Dictionary<NormalItem.eNormalType, int> counts = new Dictionary<NormalItem.eNormalType, int>();
-
-        foreach (NormalItem.eNormalType type in Enum.GetValues(typeof(NormalItem.eNormalType)))
-        {
-            counts[type] = 0;
-        }
-
-        for (int x = 0; x < boardSizeX; x++)
-        {
-            for (int y = 0; y < boardSizeY; y++)
-            {
-                if (m_cells[x, y].Item is NormalItem n)
-                {
-                    counts[n.ItemType]++;
-                }
-            }
-        }
-        // fill gaps with new items
-        for (int x = 0; x < boardSizeX; x++)
-        {
-            for (int y = 0; y < boardSizeY; y++)
-            {
-                Cell cell = m_cells[x, y];
-                if (!cell.IsEmpty) continue;
-
-                GameObject prefab = m_prefabDatabase.GetPrefab(0);
-
-                NormalItem item = new NormalItem();
-                item.Initialize(prefab, m_itemPool);
-
-                item.SetSkinDatabase(m_skinDatabase);
-                // collect forbidden neighbour types
-                HashSet<NormalItem.eNormalType> forbidden = new HashSet<NormalItem.eNormalType>();
-
-                AddNeighbourType(cell.NeighbourUp, forbidden);
-                AddNeighbourType(cell.NeighbourBottom, forbidden);
-                AddNeighbourType(cell.NeighbourLeft, forbidden);
-                AddNeighbourType(cell.NeighbourRight, forbidden);
-
-                // get candidate types
-                List<NormalItem.eNormalType> candidates =
-                    Enum.GetValues(typeof(NormalItem.eNormalType))
-                        .Cast<NormalItem.eNormalType>()
-                        .Where(t => !forbidden.Contains(t))
-                        .ToList();
-
-                NormalItem.eNormalType chosenType;
-
-                if (candidates.Count > 0)
-                {
-                    // choose the least used type
-                    chosenType = candidates
-                        .OrderBy(t => counts[t])
-                        .First();
-
-                }
-                else
-                {
-                    // fallback
-                    chosenType = Utils.GetRandomNormalType();
-                }
-
-                item.SetType(chosenType);
-                item.SetView();
-                item.SetViewRoot(cell.transform);
-
-                cell.Assign(item);
-                cell.ApplyItemPosition(true);
-
-                // update count
-                counts[chosenType]++;
-            }
-        }
-    }
-
     // Read
-    public List<Cell> GetHorizontalMatches(Cell cell)
-    {
-        List<Cell> list = new List<Cell>();
-        list.Add(cell);
-
-        //check horizontal match
-        Cell newcell = cell;
-        while (true)
-        {
-            Cell neib = newcell.NeighbourRight;
-            if (neib == null) break;
-
-            if (neib.IsSameType(cell))
-            {
-                list.Add(neib);
-                newcell = neib;
-            }
-            else break;
-        }
-
-        newcell = cell;
-        while (true)
-        {
-            Cell neib = newcell.NeighbourLeft;
-            if (neib == null) break;
-
-            if (neib.IsSameType(cell))
-            {
-                list.Add(neib);
-                newcell = neib;
-            }
-            else break;
-        }
-
-        return list;
-    }
-
-    public List<Cell> GetVerticalMatches(Cell cell)
-    {
-        List<Cell> list = new List<Cell>();
-        list.Add(cell);
-
-        Cell newcell = cell;
-        while (true)
-        {
-            Cell neib = newcell.NeighbourUp;
-            if (neib == null) break;
-
-            if (neib.IsSameType(cell))
-            {
-                list.Add(neib);
-                newcell = neib;
-            }
-            else break;
-        }
-
-        newcell = cell;
-        while (true)
-        {
-            Cell neib = newcell.NeighbourBottom;
-            if (neib == null) break;
-
-            if (neib.IsSameType(cell))
-            {
-                list.Add(neib);
-                newcell = neib;
-            }
-            else break;
-        }
-
-        return list;
-    }
-
-    internal eMatchDirection GetMatchDirection(List<Cell> matches)
-    {
-        if (matches == null || matches.Count < m_matchMin) return eMatchDirection.NONE;
-
-        var listH = matches.Where(x => x.BoardX == matches[0].BoardX).ToList();
-        if (listH.Count == matches.Count)
-        {
-            return eMatchDirection.VERTICAL;
-        }
-
-        var listV = matches.Where(x => x.BoardY == matches[0].BoardY).ToList();
-        if (listV.Count == matches.Count)
-        {
-            return eMatchDirection.HORIZONTAL;
-        }
-
-        if (matches.Count > 5)
-        {
-            return eMatchDirection.ALL;
-        }
-
-        return eMatchDirection.NONE;
-    }
-
-    internal List<Cell> FindFirstMatch()
-    {
-        List<Cell> list = new List<Cell>();
-
-        for (int x = 0; x < boardSizeX; x++)
-        {
-            for (int y = 0; y < boardSizeY; y++)
-            {
-                Cell cell = m_cells[x, y];
-
-                var listhor = GetHorizontalMatches(cell);
-                if (listhor.Count >= m_matchMin)
-                {
-                    list = listhor;
-                    break;
-                }
-
-                var listvert = GetVerticalMatches(cell);
-                if (listvert.Count >= m_matchMin)
-                {
-                    list = listvert;
-                    break;
-                }
-            }
-        }
-
-        return list;
-    }
-
     public List<Cell> CheckBonusIfCompatible(List<Cell> matches)
     {
-        var dir = GetMatchDirection(matches);
+        var dir = m_matchSystem.GetMatchDirection(matches);
 
         var bonus = matches.Where(x => x.Item is BonusItem).FirstOrDefault();
         if (bonus == null)
@@ -380,248 +152,8 @@ public class Board
         return result;
     }
 
-    internal List<Cell> GetPotentialMatches()
-    {
-        List<Cell> result = new List<Cell>();
-        for (int x = 0; x < boardSizeX; x++)
-        {
-            for (int y = 0; y < boardSizeY; y++)
-            {
-                Cell cell = m_cells[x, y];
-
-                //check right
-                /* example *\
-                  * * * * *
-                  * * * * *
-                  * * * ? *
-                  * & & * ?
-                  * * * ? *
-                \* example  */
-
-                if (cell.NeighbourRight != null)
-                {
-                    result = GetPotentialMatch(cell, cell.NeighbourRight, cell.NeighbourRight.NeighbourRight);
-                    if (result.Count > 0)
-                    {
-                        break;
-                    }
-                }
-
-                //check up
-                /* example *\
-                  * ? * * *
-                  ? * ? * *
-                  * & * * *
-                  * & * * *
-                  * * * * *
-                \* example  */
-                if (cell.NeighbourUp != null)
-                {
-                    result = GetPotentialMatch(cell, cell.NeighbourUp, cell.NeighbourUp.NeighbourUp);
-                    if (result.Count > 0)
-                    {
-                        break;
-                    }
-                }
-
-                //check bottom
-                /* example *\
-                  * * * * *
-                  * & * * *
-                  * & * * *
-                  ? * ? * *
-                  * ? * * *
-                \* example  */
-                if (cell.NeighbourBottom != null)
-                {
-                    result = GetPotentialMatch(cell, cell.NeighbourBottom, cell.NeighbourBottom.NeighbourBottom);
-                    if (result.Count > 0)
-                    {
-                        break;
-                    }
-                }
-
-                //check left
-                /* example *\
-                  * * * * *
-                  * * * * *
-                  * ? * * *
-                  ? * & & *
-                  * ? * * *
-                \* example  */
-                if (cell.NeighbourLeft != null)
-                {
-                    result = GetPotentialMatch(cell, cell.NeighbourLeft, cell.NeighbourLeft.NeighbourLeft);
-                    if (result.Count > 0)
-                    {
-                        break;
-                    }
-                }
-
-                /* example *\
-                  * * * * *
-                  * * * * *
-                  * * ? * *
-                  * & * & *
-                  * * ? * *
-                \* example  */
-                Cell neib = cell.NeighbourRight;
-                if (neib != null && neib.NeighbourRight != null && neib.NeighbourRight.IsSameType(cell))
-                {
-                    Cell second = LookForTheSecondCellVertical(neib, cell);
-                    if (second != null)
-                    {
-                        result.Add(cell);
-                        result.Add(neib.NeighbourRight);
-                        result.Add(second);
-                        break;
-                    }
-                }
-
-                /* example *\
-                  * * * * *
-                  * & * * *
-                  ? * ? * *
-                  * & * * *
-                  * * * * *
-                \* example  */
-                neib = null;
-                neib = cell.NeighbourUp;
-                if (neib != null && neib.NeighbourUp != null && neib.NeighbourUp.IsSameType(cell))
-                {
-                    Cell second = LookForTheSecondCellHorizontal(neib, cell);
-                    if (second != null)
-                    {
-                        result.Add(cell);
-                        result.Add(neib.NeighbourUp);
-                        result.Add(second);
-                        break;
-                    }
-                }
-            }
-
-            if (result.Count > 0) break;
-        }
-
-        return result;
-    }
-
-    private List<Cell> GetPotentialMatch(Cell cell, Cell neighbour, Cell target)
-    {
-        List<Cell> result = new List<Cell>();
-
-        if (neighbour != null && neighbour.IsSameType(cell))
-        {
-            Cell third = LookForTheThirdCell(target, neighbour);
-            if (third != null)
-            {
-                result.Add(cell);
-                result.Add(neighbour);
-                result.Add(third);
-            }
-        }
-
-        return result;
-    }
-
-    private Cell LookForTheSecondCellHorizontal(Cell target, Cell main)
-    {
-        if (target == null) return null;
-        if (target.IsSameType(main)) return null;
-
-        //look right
-        Cell second = null;
-        second = target.NeighbourRight;
-        if (second != null && second.IsSameType(main))
-        {
-            return second;
-        }
-
-        //look left
-        second = null;
-        second = target.NeighbourLeft;
-        if (second != null && second.IsSameType(main))
-        {
-            return second;
-        }
-
-        return null;
-    }
-
-    private Cell LookForTheSecondCellVertical(Cell target, Cell main)
-    {
-        if (target == null) return null;
-        if (target.IsSameType(main)) return null;
-
-        //look up        
-        Cell second = target.NeighbourUp;
-        if (second != null && second.IsSameType(main))
-        {
-            return second;
-        }
-
-        //look bottom
-        second = null;
-        second = target.NeighbourBottom;
-        if (second != null && second.IsSameType(main))
-        {
-            return second;
-        }
-
-        return null;
-    }
-
-    private Cell LookForTheThirdCell(Cell target, Cell main)
-    {
-        if (target == null) return null;
-        if (target.IsSameType(main)) return null;
-
-        //look up
-        Cell third = CheckThirdCell(target.NeighbourUp, main);
-        if (third != null)
-        {
-            return third;
-        }
-
-        //look right
-        third = null;
-        third = CheckThirdCell(target.NeighbourRight, main);
-        if (third != null)
-        {
-            return third;
-        }
-
-        //look bottom
-        third = null;
-        third = CheckThirdCell(target.NeighbourBottom, main);
-        if (third != null)
-        {
-            return third;
-        }
-
-        //look left
-        third = null;
-        third = CheckThirdCell(target.NeighbourLeft, main); ;
-        if (third != null)
-        {
-            return third;
-        }
-
-        return null;
-    }
-
-    private Cell CheckThirdCell(Cell target, Cell main)
-    {
-        if (target != null && target != main && target.IsSameType(main))
-        {
-            return target;
-        }
-
-        return null;
-    }
 
     // Update
-
     internal void Shuffle()
     {
         List<Item> list = new List<Item>();
@@ -662,7 +194,7 @@ public class Board
 
     internal void ConvertNormalToBonus(List<Cell> matches, Cell cellToConvert)
     {
-        eMatchDirection dir = GetMatchDirection(matches);
+        eMatchDirection dir = m_matchSystem.GetMatchDirection(matches);
 
 
         GameObject prefab = m_prefabDatabase.GetPrefab(0);
@@ -725,14 +257,6 @@ public class Board
                 holder.Assign(item);
                 item.View.DOMove(holder.transform.position, 0.3f);
             }
-        }
-    }
-
-    private void AddNeighbourType(Cell neighbour, HashSet<NormalItem.eNormalType> set)
-    {
-        if (neighbour != null && neighbour.Item is NormalItem n)
-        {
-            set.Add(n.ItemType);
         }
     }
 
