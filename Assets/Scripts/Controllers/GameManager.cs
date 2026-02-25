@@ -38,6 +38,8 @@ public class GameManager : MonoBehaviour
 
     private GameSettings m_gameSettings;
 
+    [Header("Manager")]
+
     [SerializeField]
     private ItemSkinDatabase m_itemSkinDatabase;
 
@@ -46,6 +48,19 @@ public class GameManager : MonoBehaviour
     private UIMainManager m_uiMenu;
 
     private LevelCondition m_levelCondition;
+
+
+    [Header("Level stats")]
+    eLevelMode m_currentLevelMode;
+
+    public eLevelMode CurrentLevelMode
+    {
+        get { return m_currentLevelMode; }
+        set { m_currentLevelMode = value; }
+    }
+
+
+
 
     private void Awake()
     {
@@ -99,6 +114,7 @@ public class GameManager : MonoBehaviour
             m_levelCondition.Setup(m_gameSettings.LevelMoves, m_uiMenu.GetLevelConditionView(), this);
         }
 
+        CurrentLevelMode = mode;
         m_levelCondition.ConditionCompleteEvent += GameOver;
 
         State = eStateGame.GAME_STARTED;

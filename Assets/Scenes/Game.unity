@@ -1978,7 +1978,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!224 &1617975176
 RectTransform:
   m_ObjectHideFlags: 0
@@ -2011,7 +2011,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: c1e8289016d380f4fba6f7c4fd1bdd77, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  btnRestart: {fileID: 0}
+  btnReturnHome: {fileID: 313978933}
+  btnRestart: {fileID: 1263585344}
 --- !u!222 &1617975178
 CanvasRenderer:
   m_ObjectHideFlags: 0

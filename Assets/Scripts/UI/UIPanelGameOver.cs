@@ -5,15 +5,15 @@ using UnityEngine.UI;
 
 public class UIPanelGameOver : MonoBehaviour, IMenu
 {
-    [SerializeField] private Button btnRestart;
     [SerializeField] private Button btnReturnHome;
+    [SerializeField] private Button btnRestart;
 
     private UIMainManager m_mngr;
 
     private void Awake()
     {
-        btnRestart.onClick.AddListener(OnClickClose);
-        btnReturnHome.onClick.AddListener(OnClickRestart);
+        btnReturnHome.onClick.AddListener(OnClickClose);
+        btnRestart.onClick.AddListener(OnClickRestart);
     }
 
     private void OnDestroy()
@@ -29,7 +29,7 @@ public class UIPanelGameOver : MonoBehaviour, IMenu
 
     private void OnClickRestart()
     {
-        m_mngr.ShowMainMenu();
+        m_mngr.RetryLevel();
     }
 
     public void Hide()
