@@ -2767,6 +2767,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   m_itemSkinDatabase: {fileID: 11400000, guid: 473ea7c9fc526624bbe15d13286620f1, type: 2}
   m_prefabDatabase: {fileID: 11400000, guid: 3be937190ed3df449b79dde702992a3e, type: 2}
+  m_uiMenu: {fileID: 2110808864}
   m_itemPool: {fileID: 1145769406}
 --- !u!4 &2136919903
 Transform:
