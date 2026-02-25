@@ -171,7 +171,6 @@ public class Board
 
                 NormalItem item = new NormalItem();
 
-                Debug.Log("Create for cell" +x+" "+y);
                 item.SetSkinDatabase(m_skinDatabase);
                 // collect forbidden neighbour types
                 HashSet<NormalItem.eNormalType> forbidden = new HashSet<NormalItem.eNormalType>();
@@ -180,11 +179,6 @@ public class Board
                 AddNeighbourType(cell.NeighbourBottom, forbidden);
                 AddNeighbourType(cell.NeighbourLeft, forbidden);
                 AddNeighbourType(cell.NeighbourRight, forbidden);
-
-                foreach (var type in forbidden)
-                {
-                    Debug.Log("forbidden: " + type.ToString());
-                }
 
                 // get candidate types
                 List<NormalItem.eNormalType> candidates =
@@ -202,13 +196,11 @@ public class Board
                         .OrderBy(t => counts[t])
                         .First();
 
-                    Debug.Log(chosenType.ToString());
                 }
                 else
                 {
                     // fallback
                     chosenType = Utils.GetRandomNormalType();
-                    Debug.Log("2." + chosenType.ToString());
                 }
 
                 item.SetType(chosenType);
