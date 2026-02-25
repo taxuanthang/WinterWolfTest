@@ -53,6 +53,7 @@ public class GameManager : MonoBehaviour
     private LevelCondition m_levelCondition;
 
     [Header("Commons")]
+    [SerializeField]
     private ItemPool m_itemPool;
 
 

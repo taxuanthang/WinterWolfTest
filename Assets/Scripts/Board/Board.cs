@@ -89,7 +89,10 @@ public class Board
             for (int y = 0; y < boardSizeY; y++)
             {
                 Cell cell = m_cells[x, y];
+                GameObject prefab = m_prefabDatabase.GetPrefab(0);
+
                 NormalItem item = new NormalItem();
+                item.Initialize(prefab, m_itemPool);
 
                 item.SetSkinDatabase(m_skinDatabase);
 
@@ -114,7 +117,7 @@ public class Board
 
                 item.SetType(Utils.GetRandomNormalTypeExcept(types.ToArray()));
                 item.SetView();
-                item.SetViewRoot(m_root);
+                item.SetViewRoot(cell.transform);
 
                 cell.Assign(item);
                 cell.ApplyItemPosition(false);
@@ -215,7 +218,7 @@ public class Board
 
                 item.SetType(chosenType);
                 item.SetView();
-                item.SetViewRoot(m_root);
+                item.SetViewRoot(cell.transform);
 
                 cell.Assign(item);
                 cell.ApplyItemPosition(true);
