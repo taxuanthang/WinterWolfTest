@@ -31,7 +31,7 @@ public class BoardController : MonoBehaviour
 
     private bool m_gameOver;
 
-    public void StartGame(GameManager gameManager, GameSettings gameSettings, ItemSkinDatabase itemSkinDatabase)
+    public void StartGame(GameManager gameManager, GameSettings gameSettings, ItemSkinDatabase itemSkinDatabase, PrefabDatabase prefabDatabase, ItemPool itemPool)
     {
         m_gameManager = gameManager;
 
@@ -41,7 +41,7 @@ public class BoardController : MonoBehaviour
 
         m_cam = Camera.main;
 
-        m_board = new Board(this.transform, gameSettings, itemSkinDatabase);
+        m_board = new Board(this.transform, gameSettings, itemSkinDatabase, prefabDatabase, itemPool);
 
         Fill();
     }

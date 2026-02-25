@@ -27,7 +27,12 @@ public class Board
 
     private ItemSkinDatabase m_skinDatabase;
 
-    public Board(Transform transform, GameSettings gameSettings, ItemSkinDatabase itemSkinDatabase)
+    private PrefabDatabase m_prefabDatabase;
+
+    private ItemPool m_itemPool;
+
+
+    public Board(Transform transform, GameSettings gameSettings, ItemSkinDatabase itemSkinDatabase, PrefabDatabase prefabDatabase, ItemPool itemPool)
     {
         m_root = transform;
 
@@ -39,6 +44,8 @@ public class Board
         m_cells = new Cell[boardSizeX, boardSizeY];
 
         m_skinDatabase = itemSkinDatabase;
+        m_prefabDatabase = prefabDatabase;
+        m_itemPool = itemPool;
         CreateBoard();
     }
 
@@ -169,7 +176,10 @@ public class Board
                 Cell cell = m_cells[x, y];
                 if (!cell.IsEmpty) continue;
 
+                GameObject prefab = m_prefabDatabase.GetPrefab(0);
+
                 NormalItem item = new NormalItem();
+                item.Initialize(prefab, m_itemPool);
 
                 item.SetSkinDatabase(m_skinDatabase);
                 // collect forbidden neighbour types
