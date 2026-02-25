@@ -143,6 +143,25 @@ public class Board
 
     internal void FillGapsWithNewItems()
     {
+        // get existing normal items count
+        Dictionary<NormalItem.eNormalType, int> counts = new Dictionary<NormalItem.eNormalType, int>();
+
+        foreach (NormalItem.eNormalType type in Enum.GetValues(typeof(NormalItem.eNormalType)))
+        {
+            counts[type] = 0;
+        }
+
+        for (int x = 0; x < boardSizeX; x++)
+        {
+            for (int y = 0; y < boardSizeY; y++)
+            {
+                if (m_cells[x, y].Item is NormalItem n)
+                {
+                    counts[n.ItemType]++;
+                }
+            }
+        }
+        // fill gaps with new items
         for (int x = 0; x < boardSizeX; x++)
         {
             for (int y = 0; y < boardSizeY; y++)
@@ -152,15 +171,64 @@ public class Board
 
                 NormalItem item = new NormalItem();
 
+                Debug.Log("Create for cell" +x+" "+y);
                 item.SetSkinDatabase(m_skinDatabase);
+                // collect forbidden neighbour types
+                HashSet<NormalItem.eNormalType> forbidden = new HashSet<NormalItem.eNormalType>();
 
-                item.SetType(Utils.GetRandomNormalType());
+                AddNeighbourType(cell.NeighbourUp, forbidden);
+                AddNeighbourType(cell.NeighbourBottom, forbidden);
+                AddNeighbourType(cell.NeighbourLeft, forbidden);
+                AddNeighbourType(cell.NeighbourRight, forbidden);
+
+                foreach (var type in forbidden)
+                {
+                    Debug.Log("forbidden: " + type.ToString());
+                }
+
+                // get candidate types
+                List<NormalItem.eNormalType> candidates =
+                    Enum.GetValues(typeof(NormalItem.eNormalType))
+                        .Cast<NormalItem.eNormalType>()
+                        .Where(t => !forbidden.Contains(t))
+                        .ToList();
+
+                NormalItem.eNormalType chosenType;
+
+                if (candidates.Count > 0)
+                {
+                    // choose the least used type
+                    chosenType = candidates
+                        .OrderBy(t => counts[t])
+                        .First();
+
+                    Debug.Log(chosenType.ToString());
+                }
+                else
+                {
+                    // fallback
+                    chosenType = Utils.GetRandomNormalType();
+                    Debug.Log("2." + chosenType.ToString());
+                }
+
+                item.SetType(chosenType);
                 item.SetView();
                 item.SetViewRoot(m_root);
 
                 cell.Assign(item);
                 cell.ApplyItemPosition(true);
+
+                // update count
+                counts[chosenType]++; 
             }
+        }
+    }
+
+    private void AddNeighbourType(Cell neighbour, HashSet<NormalItem.eNormalType> set)
+    {
+        if (neighbour != null && neighbour.Item is NormalItem n)
+        {
+            set.Add(n.ItemType);
         }
     }
 
