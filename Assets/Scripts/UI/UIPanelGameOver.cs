@@ -5,23 +5,31 @@ using UnityEngine.UI;
 
 public class UIPanelGameOver : MonoBehaviour, IMenu
 {
-    [SerializeField] private Button btnClose;
+    [SerializeField] private Button btnReturnHome;
+    [SerializeField] private Button btnRestart;
 
     private UIMainManager m_mngr;
 
     private void Awake()
     {
-        btnClose.onClick.AddListener(OnClickClose);
+        btnReturnHome.onClick.AddListener(OnClickClose);
+        btnRestart.onClick.AddListener(OnClickRestart);
     }
 
     private void OnDestroy()
     {
-        if (btnClose) btnClose.onClick.RemoveAllListeners();
+        if (btnRestart) btnRestart.onClick.RemoveAllListeners();
+        if (btnReturnHome) btnRestart.onClick.RemoveAllListeners();
     }
 
     private void OnClickClose()
     {
         m_mngr.ShowMainMenu();
+    }
+
+    private void OnClickRestart()
+    {
+        m_mngr.RetryLevel();
     }
 
     public void Hide()

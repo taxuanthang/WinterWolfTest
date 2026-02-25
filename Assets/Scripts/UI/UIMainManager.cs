@@ -114,6 +114,20 @@ public class UIMainManager : MonoBehaviour
         m_gameManager.LoadLevel(GameManager.eLevelMode.TIMER);
     }
 
+    internal void RetryLevel()
+    {
+        m_gameManager.ClearLevel();
+        // know what the current level mode is and load it again
+        if (m_gameManager.CurrentLevelMode == GameManager.eLevelMode.MOVES)
+        {
+            LoadLevelMoves();
+        }
+        else if (m_gameManager.CurrentLevelMode == GameManager.eLevelMode.TIMER)
+        {
+            LoadLevelTimer();
+        }
+    }
+
     internal void ShowGameMenu()
     {
         m_gameManager.SetState(GameManager.eStateGame.GAME_STARTED);
