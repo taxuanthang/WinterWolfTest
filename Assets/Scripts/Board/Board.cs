@@ -25,7 +25,9 @@ public class Board
 
     private int m_matchMin;
 
-    public Board(Transform transform, GameSettings gameSettings)
+    private ItemSkinDatabase m_skinDatabase;
+
+    public Board(Transform transform, GameSettings gameSettings, ItemSkinDatabase itemSkinDatabase)
     {
         m_root = transform;
 
@@ -36,6 +38,7 @@ public class Board
 
         m_cells = new Cell[boardSizeX, boardSizeY];
 
+        m_skinDatabase = itemSkinDatabase;
         CreateBoard();
     }
 
@@ -80,6 +83,8 @@ public class Board
             {
                 Cell cell = m_cells[x, y];
                 NormalItem item = new NormalItem();
+
+                item.SetSkinDatabase(m_skinDatabase);
 
                 List<NormalItem.eNormalType> types = new List<NormalItem.eNormalType>();
                 if (cell.NeighbourBottom != null)

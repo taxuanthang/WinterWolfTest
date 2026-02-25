@@ -4,6 +4,8 @@ using UnityEngine;
 
 public class NormalItem : Item
 {
+    private ItemSkinDatabase skinDatabase;
+
     public enum eNormalType
     {
         TYPE_ONE,
@@ -17,6 +19,26 @@ public class NormalItem : Item
 
     public eNormalType ItemType;
 
+    public void SetSkinDatabase(ItemSkinDatabase database)
+    {
+        skinDatabase = database;
+    }
+
+    public override void SetView()
+    {
+        base.SetView();
+
+        if (View == null || skinDatabase == null)
+            return;
+
+        SpriteRenderer sp = View.GetComponent<SpriteRenderer>();
+        if (sp != null)
+        {
+            Sprite sprite = skinDatabase.GetSprite((int)ItemType);
+            if (sprite != null)
+                sp.sprite = sprite;
+        }
+    }
     public void SetType(eNormalType type)
     {
         ItemType = type;
