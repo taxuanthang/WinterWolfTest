@@ -46,12 +46,6 @@ public class BoardController : MonoBehaviour
         Fill();
     }
 
-    private void Fill()
-    {
-        m_board.Fill();
-        FindMatchesAndCollapse();
-    }
-
     private void OnGameStateChange(GameManager.eStateGame state)
     {
         switch (state)
@@ -68,7 +62,6 @@ public class BoardController : MonoBehaviour
                 break;
         }
     }
-
 
     public void Tick()
     {
@@ -131,10 +124,16 @@ public class BoardController : MonoBehaviour
         }
     }
 
-    private void ResetRayCast()
+    // Create
+    private void Fill()
     {
-        m_isDragging = false;
-        m_hitCollider = null;
+        m_board.Fill();
+        FindMatchesAndCollapse();
+    }
+    // Read
+    private bool AreItemsNeighbor(Cell cell1, Cell cell2)
+    {
+        return cell1.IsNeighbour(cell2);
     }
 
     private void FindMatchesAndCollapse(Cell cell1, Cell cell2)
@@ -216,20 +215,12 @@ public class BoardController : MonoBehaviour
 
         return listHor.Concat(listVert).Distinct().ToList();
     }
+    // Update
 
-    private void CollapseMatches(List<Cell> matches, Cell cellEnd)
+    private void ResetRayCast()
     {
-        for (int i = 0; i < matches.Count; i++)
-        {
-            matches[i].ExplodeItem();
-        }
-
-        if(matches.Count > m_gameSettings.MatchesMin)
-        {
-            m_board.ConvertNormalToBonus(matches, cellEnd);
-        }
-
-        StartCoroutine(ShiftDownItemsCoroutine());
+        m_isDragging = false;
+        m_hitCollider = null;
     }
 
     private IEnumerator ShiftDownItemsCoroutine()
@@ -267,21 +258,10 @@ public class BoardController : MonoBehaviour
         FindMatchesAndCollapse();
     }
 
-
     private void SetSortingLayer(Cell cell1, Cell cell2)
     {
         if (cell1.Item != null) cell1.Item.SetSortingLayerHigher();
         if (cell2.Item != null) cell2.Item.SetSortingLayerLower();
-    }
-
-    private bool AreItemsNeighbor(Cell cell1, Cell cell2)
-    {
-        return cell1.IsNeighbour(cell2);
-    }
-
-    internal void Clear()
-    {
-        m_board.Clear();
     }
 
     private void ShowHint()
@@ -303,4 +283,27 @@ public class BoardController : MonoBehaviour
 
         m_potentialMatch.Clear();
     }
+
+    // Delete
+
+    private void CollapseMatches(List<Cell> matches, Cell cellEnd)
+    {
+        for (int i = 0; i < matches.Count; i++)
+        {
+            matches[i].ExplodeItem();
+        }
+
+        if(matches.Count > m_gameSettings.MatchesMin)
+        {
+            m_board.ConvertNormalToBonus(matches, cellEnd);
+        }
+
+        StartCoroutine(ShiftDownItemsCoroutine());
+    }
+
+    internal void Clear()
+    {
+        m_board.Clear();
+    }
+
 }
