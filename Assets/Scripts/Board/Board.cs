@@ -152,6 +152,8 @@ public class Board
 
                 NormalItem item = new NormalItem();
 
+                item.SetSkinDatabase(m_skinDatabase);
+
                 item.SetType(Utils.GetRandomNormalType());
                 item.SetView();
                 item.SetViewRoot(m_root);
