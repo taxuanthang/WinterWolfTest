@@ -7,11 +7,19 @@ public class ItemSkinDatabase : ScriptableObject
 {
     public Sprite[] normalItemSprites; // size = 7
 
+    public Sprite[] bonusItemSprites; // size = 3
 
-    public Sprite GetSprite(int index)
+
+    public Sprite GetNormalSprite(int index)
     {
 
         return normalItemSprites[index];
+    }
+
+    public Sprite GetBonusSprite(int index)
+    {
+
+        return bonusItemSprites[index];
     }
 
 }

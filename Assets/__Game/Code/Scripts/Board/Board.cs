@@ -664,7 +664,13 @@ public class Board
     {
         eMatchDirection dir = GetMatchDirection(matches);
 
+
+        GameObject prefab = m_prefabDatabase.GetPrefab(0);
+
         BonusItem item = new BonusItem();
+        item.Initialize(prefab, m_itemPool);
+
+        item.SetSkinDatabase(m_skinDatabase);
         switch (dir)
         {
             case eMatchDirection.ALL:

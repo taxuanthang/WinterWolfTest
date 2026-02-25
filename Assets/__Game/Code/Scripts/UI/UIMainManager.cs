@@ -9,6 +9,8 @@ public class UIMainManager : MonoBehaviour
 {
     private IMenu[] m_menuList;
 
+    [SerializeField] GameObject transitionScene;
+
     private GameManager m_gameManager;
 
     private void Awake()
@@ -28,6 +30,7 @@ public class UIMainManager : MonoBehaviour
     {
         m_gameManager.ClearLevel();
         m_gameManager.SetState(GameManager.eStateGame.MAIN_MENU);
+        Instantiate(transitionScene, this.transform);
     }
 
     void Update()
@@ -107,11 +110,13 @@ public class UIMainManager : MonoBehaviour
     internal void LoadLevelMoves()
     {
         m_gameManager.LoadLevel(GameManager.eLevelMode.MOVES);
+        Instantiate(transitionScene, this.transform);
     }
 
     internal void LoadLevelTimer()
     {
         m_gameManager.LoadLevel(GameManager.eLevelMode.TIMER);
+        Instantiate(transitionScene, this.transform);
     }
 
     internal void RetryLevel()

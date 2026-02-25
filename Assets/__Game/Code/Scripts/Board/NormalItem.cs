@@ -34,7 +34,7 @@ public class NormalItem : Item
         SpriteRenderer sp = View.GetComponent<SpriteRenderer>();
         if (sp != null)
         {
-            Sprite sprite = skinDatabase.GetSprite((int)ItemType);
+            Sprite sprite = skinDatabase.GetNormalSprite((int)ItemType);
             if (sprite != null)
                 sp.sprite = sprite;
         }

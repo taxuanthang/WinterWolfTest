@@ -6,6 +6,8 @@ using UnityEngine;
 
 public class BonusItem : Item
 {
+    private ItemSkinDatabase skinDatabase;
+
     public enum eBonusType
     {
         NONE,
@@ -19,6 +21,11 @@ public class BonusItem : Item
     public void SetType(eBonusType type)
     {
         ItemType = type;
+    }
+
+    public void SetSkinDatabase(ItemSkinDatabase database)
+    {
+        skinDatabase = database;
     }
 
     protected override string GetPrefabName()
@@ -40,6 +47,23 @@ public class BonusItem : Item
         }
 
         return prefabname;
+    }
+
+    public override void SetView()
+    {
+        base.SetView();
+
+        if (View == null || skinDatabase == null)
+            return;
+
+        SpriteRenderer sp = View.GetComponent<SpriteRenderer>();
+        if (sp != null)
+        {
+            Sprite sprite = skinDatabase.GetBonusSprite((int)ItemType);
+            Debug.Log(sprite.name);
+            if (sprite != null)
+                sp.sprite = sprite;
+        }
     }
 
     internal override bool IsSameType(Item other)
