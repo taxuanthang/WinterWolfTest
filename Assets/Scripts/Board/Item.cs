@@ -5,7 +5,7 @@ using UnityEngine;
 using DG.Tweening;
 
 [Serializable]
-public class Item
+public class Item 
 {
     public Cell Cell { get; private set; }
 

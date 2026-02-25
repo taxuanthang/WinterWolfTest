@@ -38,6 +38,8 @@ public class GameManager : MonoBehaviour
 
     private GameSettings m_gameSettings;
 
+    [SerializeField]
+    private ItemSkinDatabase m_itemSkinDatabase;
 
     private BoardController m_boardController;
 
@@ -84,7 +86,7 @@ public class GameManager : MonoBehaviour
     public void LoadLevel(eLevelMode mode)
     {
         m_boardController = new GameObject("BoardController").AddComponent<BoardController>();
-        m_boardController.StartGame(this, m_gameSettings);
+        m_boardController.StartGame(this, m_gameSettings,m_itemSkinDatabase);
 
         if (mode == eLevelMode.MOVES)
         {
