@@ -19,7 +19,7 @@ public class UIPanelGameOver : MonoBehaviour, IMenu
     private void OnDestroy()
     {
         if (btnRestart) btnRestart.onClick.RemoveAllListeners();
-        if (btnReturnHome) btnRestart.onClick.RemoveAllListeners();
+        if (btnReturnHome) btnReturnHome.onClick.RemoveAllListeners();
     }
 
     private void OnClickClose()

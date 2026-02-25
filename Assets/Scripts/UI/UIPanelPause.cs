@@ -7,17 +7,20 @@ using UnityEngine.UI;
 public class UIPanelPause : MonoBehaviour, IMenu
 {
     [SerializeField] private Button btnClose;
+    [SerializeField] private Button btnReturnHome;
 
     private UIMainManager m_mngr;
 
     private void Awake()
     {
         btnClose.onClick.AddListener(OnClickClose);
+        btnReturnHome.onClick.AddListener(OnClickReturnHome);
     }
 
     private void OnDestroy()
     {
         if (btnClose) btnClose.onClick.RemoveAllListeners();
+        if (btnReturnHome) btnReturnHome.onClick.RemoveAllListeners();
     }
 
     public void Setup(UIMainManager mngr)
@@ -29,6 +32,11 @@ public class UIPanelPause : MonoBehaviour, IMenu
     {
         m_mngr.ShowGameMenu();
     }
+    private void OnClickReturnHome()
+    {
+        m_mngr.ShowMainMenu();
+    }
+
 
     public void Show()
     {
