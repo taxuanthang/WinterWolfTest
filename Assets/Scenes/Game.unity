@@ -2765,6 +2765,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 0ed4360ab36daef4c9dd32250c4fa46d, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  m_gameSettings: {fileID: 11400000, guid: 598718f9e5a14af49b65162e962b0ca1, type: 2}
   m_itemSkinDatabase: {fileID: 11400000, guid: 473ea7c9fc526624bbe15d13286620f1, type: 2}
   m_prefabDatabase: {fileID: 11400000, guid: 3be937190ed3df449b79dde702992a3e, type: 2}
   m_uiMenu: {fileID: 2110808864}

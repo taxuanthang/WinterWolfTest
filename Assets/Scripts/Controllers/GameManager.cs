@@ -35,26 +35,22 @@ public class GameManager : MonoBehaviour
         }
     }
 
-
-    private GameSettings m_gameSettings;
+    [SerializeField] private GameSettings m_gameSettings;
 
     [Header("Manager")]
 
-    [SerializeField]
-    private ItemSkinDatabase m_itemSkinDatabase;
+    [SerializeField] private ItemSkinDatabase m_itemSkinDatabase;
 
-    [SerializeField]
-    private PrefabDatabase m_prefabDatabase;
+    [SerializeField] private PrefabDatabase m_prefabDatabase;
 
     private BoardController m_boardController;
-    [SerializeField]
-    private UIMainManager m_uiMenu;
+
+    [SerializeField] private UIMainManager m_uiMenu;
 
     private LevelCondition m_levelCondition;
 
     [Header("Commons")]
-    [SerializeField]
-    private ItemPool m_itemPool;
+    [SerializeField] private ItemPool m_itemPool;
 
 
     [Header("Level stats")]
@@ -72,8 +68,10 @@ public class GameManager : MonoBehaviour
     private void Awake()
     {
         State = eStateGame.SETUP;
-
-        m_gameSettings = Resources.Load<GameSettings>(Constants.GAME_SETTINGS_PATH);
+        if (m_gameSettings == null)
+        {
+            m_gameSettings = Resources.Load<GameSettings>(Constants.GAME_SETTINGS_PATH);
+        }
 
         if (m_uiMenu == null)
         {
