@@ -27,7 +27,12 @@ public class Board
 
     private ItemSkinDatabase m_skinDatabase;
 
-    public Board(Transform transform, GameSettings gameSettings, ItemSkinDatabase itemSkinDatabase)
+    private PrefabDatabase m_prefabDatabase;
+
+    private ItemPool m_itemPool;
+
+
+    public Board(Transform transform, GameSettings gameSettings, ItemSkinDatabase itemSkinDatabase, PrefabDatabase prefabDatabase, ItemPool itemPool)
     {
         m_root = transform;
 
@@ -39,9 +44,13 @@ public class Board
         m_cells = new Cell[boardSizeX, boardSizeY];
 
         m_skinDatabase = itemSkinDatabase;
+        m_prefabDatabase = prefabDatabase;
+        m_itemPool = itemPool;
         CreateBoard();
     }
 
+
+    // Create 
     private void CreateBoard()
     {
         Vector3 origin = new Vector3(-boardSizeX * 0.5f + 0.5f, -boardSizeY * 0.5f + 0.5f, 0f);
@@ -82,7 +91,10 @@ public class Board
             for (int y = 0; y < boardSizeY; y++)
             {
                 Cell cell = m_cells[x, y];
+                GameObject prefab = m_prefabDatabase.GetPrefab(0);
+
                 NormalItem item = new NormalItem();
+                item.Initialize(prefab, m_itemPool);
 
                 item.SetSkinDatabase(m_skinDatabase);
 
@@ -107,39 +119,13 @@ public class Board
 
                 item.SetType(Utils.GetRandomNormalTypeExcept(types.ToArray()));
                 item.SetView();
-                item.SetViewRoot(m_root);
+                item.SetViewRoot(cell.transform);
 
                 cell.Assign(item);
                 cell.ApplyItemPosition(false);
             }
         }
     }
-
-    internal void Shuffle()
-    {
-        List<Item> list = new List<Item>();
-        for (int x = 0; x < boardSizeX; x++)
-        {
-            for (int y = 0; y < boardSizeY; y++)
-            {
-                list.Add(m_cells[x, y].Item);
-                m_cells[x, y].Free();
-            }
-        }
-
-        for (int x = 0; x < boardSizeX; x++)
-        {
-            for (int y = 0; y < boardSizeY; y++)
-            {
-                int rnd = UnityEngine.Random.Range(0, list.Count);
-                m_cells[x, y].Assign(list[rnd]);
-                m_cells[x, y].ApplyItemMoveToPosition();
-
-                list.RemoveAt(rnd);
-            }
-        }
-    }
-
 
     internal void FillGapsWithNewItems()
     {
@@ -169,7 +155,10 @@ public class Board
                 Cell cell = m_cells[x, y];
                 if (!cell.IsEmpty) continue;
 
+                GameObject prefab = m_prefabDatabase.GetPrefab(0);
+
                 NormalItem item = new NormalItem();
+                item.Initialize(prefab, m_itemPool);
 
                 item.SetSkinDatabase(m_skinDatabase);
                 // collect forbidden neighbour types
@@ -205,50 +194,18 @@ public class Board
 
                 item.SetType(chosenType);
                 item.SetView();
-                item.SetViewRoot(m_root);
+                item.SetViewRoot(cell.transform);
 
                 cell.Assign(item);
                 cell.ApplyItemPosition(true);
 
                 // update count
-                counts[chosenType]++; 
+                counts[chosenType]++;
             }
         }
     }
 
-    private void AddNeighbourType(Cell neighbour, HashSet<NormalItem.eNormalType> set)
-    {
-        if (neighbour != null && neighbour.Item is NormalItem n)
-        {
-            set.Add(n.ItemType);
-        }
-    }
-
-    internal void ExplodeAllItems()
-    {
-        for (int x = 0; x < boardSizeX; x++)
-        {
-            for (int y = 0; y < boardSizeY; y++)
-            {
-                Cell cell = m_cells[x, y];
-                cell.ExplodeItem();
-            }
-        }
-    }
-
-    public void Swap(Cell cell1, Cell cell2, Action callback)
-    {
-        Item item = cell1.Item;
-        cell1.Free();
-        Item item2 = cell2.Item;
-        cell1.Assign(item2);
-        cell2.Free();
-        cell2.Assign(item);
-
-        item.View.DOMove(cell2.transform.position, 0.3f);
-        item2.View.DOMove(cell1.transform.position, 0.3f).OnComplete(() => { if (callback != null) callback(); });
-    }
-
+    // Read
     public List<Cell> GetHorizontalMatches(Cell cell)
     {
         List<Cell> list = new List<Cell>();
@@ -286,7 +243,6 @@ public class Board
         return list;
     }
 
-
     public List<Cell> GetVerticalMatches(Cell cell)
     {
         List<Cell> list = new List<Cell>();
@@ -322,42 +278,6 @@ public class Board
 
         return list;
     }
-
-    internal void ConvertNormalToBonus(List<Cell> matches, Cell cellToConvert)
-    {
-        eMatchDirection dir = GetMatchDirection(matches);
-
-        BonusItem item = new BonusItem();
-        switch (dir)
-        {
-            case eMatchDirection.ALL:
-                item.SetType(BonusItem.eBonusType.ALL);
-                break;
-            case eMatchDirection.HORIZONTAL:
-                item.SetType(BonusItem.eBonusType.HORIZONTAL);
-                break;
-            case eMatchDirection.VERTICAL:
-                item.SetType(BonusItem.eBonusType.VERTICAL);
-                break;
-        }
-
-        if (item != null)
-        {
-            if (cellToConvert == null)
-            {
-                int rnd = UnityEngine.Random.Range(0, matches.Count);
-                cellToConvert = matches[rnd];
-            }
-
-            item.SetView();
-            item.SetViewRoot(m_root);
-
-            cellToConvert.Free();
-            cellToConvert.Assign(item);
-            cellToConvert.ApplyItemPosition(true);
-        }
-    }
-
 
     internal eMatchDirection GetMatchDirection(List<Cell> matches)
     {
@@ -417,7 +337,7 @@ public class Board
         var dir = GetMatchDirection(matches);
 
         var bonus = matches.Where(x => x.Item is BonusItem).FirstOrDefault();
-        if(bonus == null)
+        if (bonus == null)
         {
             return matches;
         }
@@ -700,6 +620,81 @@ public class Board
         return null;
     }
 
+    // Update
+
+    internal void Shuffle()
+    {
+        List<Item> list = new List<Item>();
+        for (int x = 0; x < boardSizeX; x++)
+        {
+            for (int y = 0; y < boardSizeY; y++)
+            {
+                list.Add(m_cells[x, y].Item);
+                m_cells[x, y].Free();
+            }
+        }
+
+        for (int x = 0; x < boardSizeX; x++)
+        {
+            for (int y = 0; y < boardSizeY; y++)
+            {
+                int rnd = UnityEngine.Random.Range(0, list.Count);
+                m_cells[x, y].Assign(list[rnd]);
+                m_cells[x, y].ApplyItemMoveToPosition();
+
+                list.RemoveAt(rnd);
+            }
+        }
+    }
+
+    public void Swap(Cell cell1, Cell cell2, Action callback)
+    {
+        Item item = cell1.Item;
+        cell1.Free();
+        Item item2 = cell2.Item;
+        cell1.Assign(item2);
+        cell2.Free();
+        cell2.Assign(item);
+
+        item.View.DOMove(cell2.transform.position, 0.3f);
+        item2.View.DOMove(cell1.transform.position, 0.3f).OnComplete(() => { if (callback != null) callback(); });
+    }
+
+    internal void ConvertNormalToBonus(List<Cell> matches, Cell cellToConvert)
+    {
+        eMatchDirection dir = GetMatchDirection(matches);
+
+        BonusItem item = new BonusItem();
+        switch (dir)
+        {
+            case eMatchDirection.ALL:
+                item.SetType(BonusItem.eBonusType.ALL);
+                break;
+            case eMatchDirection.HORIZONTAL:
+                item.SetType(BonusItem.eBonusType.HORIZONTAL);
+                break;
+            case eMatchDirection.VERTICAL:
+                item.SetType(BonusItem.eBonusType.VERTICAL);
+                break;
+        }
+
+        if (item != null)
+        {
+            if (cellToConvert == null)
+            {
+                int rnd = UnityEngine.Random.Range(0, matches.Count);
+                cellToConvert = matches[rnd];
+            }
+
+            item.SetView();
+            item.SetViewRoot(m_root);
+
+            cellToConvert.Free();
+            cellToConvert.Assign(item);
+            cellToConvert.ApplyItemPosition(true);
+        }
+    }
+
     internal void ShiftDownItems()
     {
         for (int x = 0; x < boardSizeX; x++)
@@ -727,6 +722,27 @@ public class Board
         }
     }
 
+    private void AddNeighbourType(Cell neighbour, HashSet<NormalItem.eNormalType> set)
+    {
+        if (neighbour != null && neighbour.Item is NormalItem n)
+        {
+            set.Add(n.ItemType);
+        }
+    }
+
+    // Delete
+    internal void ExplodeAllItems()
+    {
+        for (int x = 0; x < boardSizeX; x++)
+        {
+            for (int y = 0; y < boardSizeY; y++)
+            {
+                Cell cell = m_cells[x, y];
+                cell.ExplodeItem();
+            }
+        }
+    }
+
     public void Clear()
     {
         for (int x = 0; x < boardSizeX; x++)
@@ -741,4 +757,5 @@ public class Board
             }
         }
     }
+
 }

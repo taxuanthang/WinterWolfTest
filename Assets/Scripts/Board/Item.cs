@@ -11,19 +11,23 @@ public class Item
 
     public Transform View { get; private set; }
 
+    protected GameObject prefabReference;
+    protected ItemPool pool;
+
+
+    public void Initialize(GameObject prefab, ItemPool itemPool)
+    {
+        prefabReference = prefab;
+        pool = itemPool;
+    }
 
     public virtual void SetView()
     {
-        string prefabname = GetPrefabName();
+        if (prefabReference == null || pool == null)
+            return;
 
-        if (!string.IsNullOrEmpty(prefabname))
-        {
-            GameObject prefab = Resources.Load<GameObject>(prefabname);
-            if (prefab)
-            {
-                View = GameObject.Instantiate(prefab).transform;
-            }
-        }
+        GameObject obj = pool.Get(prefabReference, null);
+        View = obj.transform;
     }
 
     protected virtual string GetPrefabName() { return string.Empty; }

@@ -35,19 +35,22 @@ public class GameManager : MonoBehaviour
         }
     }
 
-
-    private GameSettings m_gameSettings;
+    [SerializeField] private GameSettings m_gameSettings;
 
     [Header("Manager")]
 
-    [SerializeField]
-    private ItemSkinDatabase m_itemSkinDatabase;
+    [SerializeField] private ItemSkinDatabase m_itemSkinDatabase;
+
+    [SerializeField] private PrefabDatabase m_prefabDatabase;
 
     private BoardController m_boardController;
 
-    private UIMainManager m_uiMenu;
+    [SerializeField] private UIMainManager m_uiMenu;
 
     private LevelCondition m_levelCondition;
+
+    [Header("Commons")]
+    [SerializeField] private ItemPool m_itemPool;
 
 
     [Header("Level stats")]
@@ -65,10 +68,15 @@ public class GameManager : MonoBehaviour
     private void Awake()
     {
         State = eStateGame.SETUP;
+        if (m_gameSettings == null)
+        {
+            m_gameSettings = Resources.Load<GameSettings>(Constants.GAME_SETTINGS_PATH);
+        }
 
-        m_gameSettings = Resources.Load<GameSettings>(Constants.GAME_SETTINGS_PATH);
-
-        m_uiMenu = FindObjectOfType<UIMainManager>();
+        if (m_uiMenu == null)
+        {
+            m_uiMenu = FindObjectOfType<UIMainManager>();
+        }
         m_uiMenu.Setup(this);
     }
 
@@ -80,7 +88,7 @@ public class GameManager : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
-        if (m_boardController != null) m_boardController.Update();
+        if (m_boardController != null) m_boardController.Tick();
     }
 
 
@@ -101,7 +109,7 @@ public class GameManager : MonoBehaviour
     public void LoadLevel(eLevelMode mode)
     {
         m_boardController = new GameObject("BoardController").AddComponent<BoardController>();
-        m_boardController.StartGame(this, m_gameSettings,m_itemSkinDatabase);
+        m_boardController.StartGame(this, m_gameSettings,m_itemSkinDatabase,m_prefabDatabase,m_itemPool);
 
         if (mode == eLevelMode.MOVES)
         {
